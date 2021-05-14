@@ -6,7 +6,8 @@ const server = require('./mockServer');
 
 const httpHandler = require('../js/httpHandler');
 
-
+// const queue = require('../js/messageQueue');
+// httpHandler.initialize(queue);
 
 describe('server responses', () => {
 
@@ -22,7 +23,16 @@ describe('server responses', () => {
   });
 
   it('should respond to a GET request for a swim command', (done) => {
-    // write your test here
+    let {req, res} = server.mock('/', 'GET');
+
+    // const commands = ['up', 'down', 'left', 'right'];
+    // let index = Math.floor(Math.random() * commands.length);
+    // queue.enqueue(commands[index]);
+
+    httpHandler.router(req, res);
+    expect(res._responseCode).to.equal(200);
+    expect(res._ended).to.equal(true);
+    expect(['up', 'down', 'left', 'right', '']).to.include(res._data.toString());
     done();
   });
 

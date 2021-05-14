@@ -13,8 +13,38 @@ module.exports.initialize = (queue) => {
 };
 
 module.exports.router = (req, res, next = ()=>{}) => {
-  console.log('Serving request type ' + req.method + ' for url ' + req.url);
-  res.writeHead(200, headers);
-  res.end();
-  next(); // invoke next() at the end of a request to help with testing!
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200, headers);
+    res.end();
+  }
+
+  if (req.method === 'GET') {
+    if (req.url === '/') {
+      res.writeHead(200, headers);
+      let command = messageQueue.dequeue();
+      if (command) {
+        console.log('Responding with:', command);
+        res.end(command);
+      } else {
+        res.end();
+      }
+    }
+  }
+
+  if (req.url === '/background.jpg') {
+    fs.readFile(module.exports.backgroundImageFile, (err, fileData) => {
+      if (err) {
+        res.writeHead(404);
+      } else {
+        res.writeHead(200, {
+          'Content-Type': 'image/jepg',
+          'Content-Length': fileData.length
+        });
+        res.write(fileData, 'binary');
+      }
+      res.end();
+      next();
+    })
+  }
+
 };

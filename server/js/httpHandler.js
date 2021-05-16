@@ -32,18 +32,35 @@ module.exports.router = (req, res, next = ()=>{}) => {
   }
 
   if (req.url === '/background.jpg') {
-    fs.readFile(module.exports.backgroundImageFile, (err, fileData) => {
-      if (err) {
-        res.writeHead(404);
-      } else {
-        res.writeHead(200, {
-          'Content-Type': 'image/jepg',
-          'Content-Length': fileData.length
-        });
-        res.write(fileData, 'binary');
-      }
-      res.end();
-      next();
+      fs.readFile(module.exports.backgroundImageFile, (err, fileData) => {
+        if (err) {
+          res.writeHead(404);
+        } else {
+          res.writeHead(200, {
+            'Content-Type': 'image/jepg',
+            'Content-Length': fileData.length
+          });
+          res.write(fileData, 'binary');
+        }
+        res.end();
+        next();
+      })
+  }
+
+  if (req.method === 'POST' && req.url === '/background.jpg') {
+    var imageData = Buffer.alloc(0);
+
+    req.on('data', (chunk) => {
+      imageData = Buffer.concat([imageData, chunk]);
+    })
+
+    req.on('end', () => {
+      var file = multipart.getFile(imageData);
+      fs.writeFile(module.exports.backgroundImageFile, file.data, (err) => {
+        res.writeHead(err ? 400 : 200, headers);
+        res.end();
+        next();
+      })
     })
   }
 
